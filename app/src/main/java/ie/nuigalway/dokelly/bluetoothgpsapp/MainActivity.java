@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
-    private Button bluetoothButton;
+    private Button bluetoothButton; // two buttons on main page
     private Button mapButton;
 
     @Override
@@ -15,6 +15,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // get BT button & add listener
         bluetoothButton = findViewById(R.id.bluetoothDevicesButton);
         bluetoothButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -23,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // get map button & add listener
         mapButton = findViewById(R.id.mapButton);
         mapButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -35,11 +37,13 @@ public class MainActivity extends AppCompatActivity {
 //        startService(service);
     }
 
+    // method to navigate to BT activity
     public void openBluetoothActivity() {
         Intent bluetoothIntent = new Intent(this, BluetoothActivity.class);
         startActivity(bluetoothIntent);
     }
 
+    // method to navigate to map activity
     public void openMapActivity() {
         Intent mapIntent = new Intent(this, MapsActivity.class);
         startActivity(mapIntent);

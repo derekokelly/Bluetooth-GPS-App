@@ -51,6 +51,7 @@ import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
+    // some variables brought from BT activity
     private GoogleMap mMap;
     private ProgressDialog LocationDialog;
     private Marker markerLocation;
@@ -71,24 +72,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        // setup methods
         checkLocationPermission();
         startGettingLocations();
 //        getLocation();
 
+        // firebase reference
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         mDatabase = database.getReference();
 
+        // don't need format anymore
         format = new SimpleDateFormat("dd/MM/YYYY, HH:mm:ss");
 
         DatabaseReference ref = mDatabase.getRef();
-        System.out.println("ref ref ref ref: " + ref.child("locations+BT"));
+        System.out.println("ref ref ref ref: " + ref.child("locations+BT")); // for debugging in logcat, easier to find
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot ds) {
-                System.out.println("ref ref ref ref " + ds.getChildren());
+                System.out.println("ref ref ref ref " + ds.getChildren()); // for debugging as above
                 Iterable<DataSnapshot> locations = ds.child("locations+BT").getChildren();
                 for (DataSnapshot dataSnapshots : locations) {
-                    LocationData ld = dataSnapshots.getValue(LocationData.class);
+                    LocationData ld = dataSnapshots.getValue(LocationData.class); // this line causes issues, could be pointing at database wrong?
                     LatLng location = new LatLng(ld.latitude, ld.longitude);
                     boolean containsLocation = locationList.contains(location);
                     if (!containsLocation) {
@@ -96,11 +100,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         long epoch = Long.parseLong(dataSnapshots.getKey());
                         Timestamp ts = new Timestamp(epoch);
                         String label = format.format(ts);
-                        mMap.addMarker((new MarkerOptions().position(location).title(label))
-                            .icon(BitmapDescriptorFactory.defaultMarker((int) Math.floor(Math.random() * 360))));
-                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                        mMap.addMarker((new MarkerOptions().position(location).title(label)) // add marker to map with label SHOULD be numBTDevices
+                            .icon(BitmapDescriptorFactory.defaultMarker((int) Math.floor(Math.random() * 360)))); // give it a random colour
+                        CameraPosition cameraPosition = new CameraPosition.Builder() // zoom in on newly added pin
                             .target(new LatLng(location.latitude, location.longitude))
-                            .zoom(10)
+                            .zoom(10) // zoom 10 isn't too close but not too far away
                             .build();
                         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                     }
@@ -110,6 +114,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {}
         });
+
+        // old event listener
 
 //        ValueEventListener listener = new ValueEventListener() {
 //            @Override
@@ -136,23 +142,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //            public void onCancelled(DatabaseError databaseError) {}
 //        };
 //        mDatabase.addValueEventListener(listener);
+
+        // finish off setup functions
         setupBluetooth();
         findDevices();
         getLocation();
     }
 
-    //Detects if device has bluetooth, and in case where it is turned off, prompts user to turn it on
+    // same function as BT activity
+    // Detects if device has bluetooth, and in case where it is turned off, prompts user to turn it on
     public void setupBluetooth() {
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         if (btAdapter == null) {
-            //Device doesn't support Bluetooth
+            // Device doesn't support Bluetooth
         }
         if (!btAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);  //Pop-up appears on screen for user to enable bluetooth
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);  // Pop-up appears on screen for user to enable bluetooth
         }
     }
 
+    // same as BT activity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == DISCOVERY_REQUEST) {
@@ -160,12 +170,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    // same as BT activity
     private void findDevices() {
         if (btAdapter.startDiscovery()) {
             registerReceiver(discoveryResult, new IntentFilter(BluetoothDevice.ACTION_FOUND));
         }
     }
 
+    // same as BT activity
     BroadcastReceiver discoveryResult = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -194,6 +206,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
     }
 
+    // gets current location
     private void getLocation() {
         LocationDialog = new ProgressDialog(this);
         LocationDialog.setMessage("Loading location...");
@@ -210,6 +223,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
 
+        // if permission granted
         SingleShotLocationProvider.requestSingleUpdate(this,
                 new SingleShotLocationProvider.LocationCallback() {
                     @Override
@@ -222,6 +236,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    // don't use this method anymore
     private void addMarker(LatLng latLng) {
         if (latLng == null) {
             return;
@@ -246,6 +261,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
+    // this method pushes new BT device & location data to firebase
     @Override
     public void onLocationChanged(Location location) {
         LocationData locationData = new LocationData(location.getLatitude(), location.getLongitude(), deviceList);
@@ -254,20 +270,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
+    public void onStatusChanged(String provider, int status, Bundle extras) {}
 
     @Override
-    public void onProviderEnabled(String provider) {
-
-    }
+    public void onProviderEnabled(String provider) {}
 
     @Override
-    public void onProviderDisabled(String provider) {
+    public void onProviderDisabled(String provider) {}
 
-    }
-
+    // method to check permissions for location
     public boolean checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -308,6 +319,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    // can get location when conditions are satisfied
     private void startGettingLocations() {
 
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -375,6 +387,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    // get the permissions that weren't asked
     private ArrayList findUnAskedPermissions(ArrayList<String> wanted) {
         ArrayList result = new ArrayList();
 
@@ -386,6 +399,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         return result;
     }
+
+    // more permission methods
     private boolean hasPermission(String permission) {
         if (canAskPermission()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

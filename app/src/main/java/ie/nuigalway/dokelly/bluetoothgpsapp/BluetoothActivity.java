@@ -37,22 +37,25 @@ public class BluetoothActivity extends AppCompatActivity {
     private final static int REQUEST_ENABLE_BT = 1;
     private final static int DISCOVERY_REQUEST = 1;
     private BluetoothAdapter btAdapter;
-    private ArrayList deviceList = new ArrayList();
-    private DatabaseReference mDatabase;
+    private ArrayList deviceList = new ArrayList(); // arraylist to hold devices in
+    private DatabaseReference mDatabase; // reference to firebase database
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTitle("Bluetooth Device List");
+        setTitle("Bluetooth Device List"); // give page a title in appbar
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth);
 
+        // setup methods
         setupBluetooth();
         findDevices();
         showList();
 
+        // instantiate firebase reference
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         mDatabase = database.getReference();
 
+        // add listener to db
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot ds) {
@@ -72,7 +75,7 @@ public class BluetoothActivity extends AppCompatActivity {
         });
     }
 
-    //Detects if device has bluetooth, and in case where it is turned off, prompts user to turn it on
+    // Detects if device has bluetooth, and in case where it is turned off, prompts user to turn it on
     public void setupBluetooth() {
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         if (btAdapter == null) {
@@ -84,6 +87,7 @@ public class BluetoothActivity extends AppCompatActivity {
         }
     }
 
+    // when request code is the discovery code, call find devices
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == DISCOVERY_REQUEST) {
@@ -91,12 +95,14 @@ public class BluetoothActivity extends AppCompatActivity {
         }
     }
 
+    // method to discover BT devices
     private void findDevices() {
         if (btAdapter.startDiscovery()) {
             registerReceiver(discoveryResult, new IntentFilter(BluetoothDevice.ACTION_FOUND));
         }
     }
 
+    // broadcast receiver to push device name & address to firebase
     BroadcastReceiver discoveryResult = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -112,6 +118,7 @@ public class BluetoothActivity extends AppCompatActivity {
         }
     };
 
+    // method to display list view of BT devices
     private void showList() {
         ListAdapter adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, deviceList);
         ListView listView = findViewById(R.id.deviceList);

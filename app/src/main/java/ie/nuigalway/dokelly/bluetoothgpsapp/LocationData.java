@@ -15,12 +15,14 @@ public class LocationData {
 //        this.longitude = longitude;
 //    }
 
+    // Constructor
     public LocationData(double latitude, double longitude, ArrayList list) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.devices = list;
     }
 
+    // Getter methods
     public double getLatitude() {
         return this.latitude;
     }
