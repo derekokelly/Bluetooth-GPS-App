@@ -84,43 +84,6 @@ public class BluetoothActivity extends AppCompatActivity {
         }
     }
 
-    BroadcastReceiver bluetoothState = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String prevStateExtra = BluetoothAdapter.EXTRA_PREVIOUS_STATE;
-            String stateExtra = BluetoothAdapter.EXTRA_STATE;
-            int state = intent.getIntExtra(stateExtra, -1);
-            int prevState = intent.getIntExtra(prevStateExtra, -1);
-
-            switch (state) {
-                case (BluetoothAdapter.STATE_TURNING_ON):
-                {
-                    Log.i("BluetoothAdapter", "bluetooth turning on");
-                    Toast.makeText(BluetoothActivity.this, "Bluetooth turning on", Toast.LENGTH_SHORT).show();
-                    break;
-                }
-                case (BluetoothAdapter.STATE_ON):
-                {
-                    Log.i("BluetoothAdapter", "bluetooth on");
-                    Toast.makeText(BluetoothActivity.this, "Bluetooth on", Toast.LENGTH_SHORT).show();
-                    break;
-                }
-                case (BluetoothAdapter.STATE_TURNING_OFF):
-                {
-                    Log.i("BluetoothAdapter", "bluetooth turning off");
-                    Toast.makeText(BluetoothActivity.this, "Bluetooth turning off", Toast.LENGTH_SHORT).show();
-                    break;
-                }
-                case (BluetoothAdapter.STATE_OFF):
-                {
-                    Log.i("BluetoothAdapter", "bluetooth off");
-                    Toast.makeText(BluetoothActivity.this, "Bluetooth off", Toast.LENGTH_SHORT).show();
-                    break;
-                }
-            }
-        }
-    };
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == DISCOVERY_REQUEST) {

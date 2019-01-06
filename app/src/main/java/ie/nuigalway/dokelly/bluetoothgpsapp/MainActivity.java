@@ -30,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
                 openMapActivity();
             }
         });
+
+//        Intent service = new Intent(getApplicationContext(), GPSService.class);
+//        startService(service);
     }
 
     public void openBluetoothActivity() {

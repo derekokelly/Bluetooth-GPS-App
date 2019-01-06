@@ -2,9 +2,13 @@ package ie.nuigalway.dokelly.bluetoothgpsapp;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -53,6 +57,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private DatabaseReference mDatabase;
     private SimpleDateFormat format;
     private ArrayList<Object> locationList = new ArrayList<>();
+    private final static int REQUEST_ENABLE_BT = 1;
+    private final static int DISCOVERY_REQUEST = 1;
+    private BluetoothAdapter btAdapter;
+    private ArrayList deviceList = new ArrayList();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,10 +80,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         format = new SimpleDateFormat("dd/MM/YYYY, HH:mm:ss");
 
+        DatabaseReference ref = mDatabase.getRef();
+        System.out.println("ref ref ref ref: " + ref.child("locations+BT"));
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot ds) {
-                Iterable<DataSnapshot> locations = ds.child("locations").getChildren();
+                System.out.println("ref ref ref ref " + ds.getChildren());
+                Iterable<DataSnapshot> locations = ds.child("locations+BT").getChildren();
                 for (DataSnapshot dataSnapshots : locations) {
                     LocationData ld = dataSnapshots.getValue(LocationData.class);
                     LatLng location = new LatLng(ld.latitude, ld.longitude);
@@ -125,10 +136,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //            public void onCancelled(DatabaseError databaseError) {}
 //        };
 //        mDatabase.addValueEventListener(listener);
-
+        setupBluetooth();
+        findDevices();
         getLocation();
     }
 
+    //Detects if device has bluetooth, and in case where it is turned off, prompts user to turn it on
+    public void setupBluetooth() {
+        btAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (btAdapter == null) {
+            //Device doesn't support Bluetooth
+        }
+        if (!btAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);  //Pop-up appears on screen for user to enable bluetooth
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == DISCOVERY_REQUEST) {
+            findDevices();
+        }
+    }
+
+    private void findDevices() {
+        if (btAdapter.startDiscovery()) {
+            registerReceiver(discoveryResult, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+        }
+    }
+
+    BroadcastReceiver discoveryResult = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String remoteDeviceName = intent.getStringExtra(BluetoothDevice.EXTRA_NAME);
+            BluetoothDevice remoteDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            String deviceInfo = remoteDeviceName + ", " + remoteDevice;
+            boolean containsDevice = deviceList.contains(deviceInfo);
+            if (!containsDevice) {
+                deviceList.add(deviceInfo);
+                mDatabase.child("devices").push().setValue(deviceInfo);
+            }
+        }
+    };
 
     /**
      * Manipulates the map once available.
@@ -198,21 +248,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onLocationChanged(Location location) {
-        LocationData locationData = new LocationData(location.getLatitude(), location.getLongitude());
-        String key = String.valueOf(System.currentTimeMillis());
-//        int numBTDevices = 4;
+        LocationData locationData = new LocationData(location.getLatitude(), location.getLongitude(), deviceList);
 
-//        ArrayList<Object> toSend = new ArrayList<>();
-//        toSend.add(locationData);
-//        toSend.add(numBTDevices);
-
-//        Map<String, User> users = new HashMap<>();
-//        users.put("alanisawesome", new User("June 23, 1912", "Alan Turing"));
-//        users.put("gracehop", new User("December 9, 1906", "Grace Hopper"));
-//
-//        usersRef.setValueAsync(users);
-
-        mDatabase.child("locations").child(key).setValue(locationData);
+        mDatabase.child("locations+BT").push().setValue(locationData);
     }
 
     @Override
