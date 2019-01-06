@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "462488504839",
+    "firebase_url": "https://bluetoothgpsapp.firebaseio.com",
+    "project_id": "bluetoothgpsapp",
+    "storage_bucket": "bluetoothgpsapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:462488504839:android:6271ad0a2d2c9a84",
+        "android_client_info": {
+          "package_name": "ie.nuigalway.dokelly.bluetoothgpsapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "462488504839-i8cdm1aj7hj5qmjfh4j3864cqu79sp1o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ie.nuigalway.dokelly.bluetoothgpsapp",
+            "certificate_hash": "66654fb207a2c74232fcad6dff6b764fad33ba76"
+          }
+        },
+        {
+          "client_id": "462488504839-0hrc7h1hlhmsbk3pcurrf2o2skv8mekt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCo_ZThjvi_LnQOFRSNKLEXY36-ijPU-S4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "462488504839-0hrc7h1hlhmsbk3pcurrf2o2skv8mekt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
