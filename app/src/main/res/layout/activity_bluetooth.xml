@@ -8,20 +8,10 @@
 
     <ListView
         android:id="@+id/deviceList"
-        android:layout_width="match_parent"
-        android:layout_height="427dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"></ListView>
-
-    <Button
-        android:id="@+id/discoverableButton"
-        android:onClick="enableDiscoverable"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:text="Make discoverable" />
 
 </RelativeLayout>

@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,9 +16,21 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class BluetoothActivity extends AppCompatActivity {
@@ -25,9 +38,11 @@ public class BluetoothActivity extends AppCompatActivity {
     private final static int DISCOVERY_REQUEST = 1;
     private BluetoothAdapter btAdapter;
     private ArrayList deviceList = new ArrayList();
+    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTitle("Bluetooth Device List");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth);
 
@@ -35,15 +50,26 @@ public class BluetoothActivity extends AppCompatActivity {
         findDevices();
         showList();
 
-//        int MINUTES = 20; // The delay in minutes
-//        Timer timer = new Timer();
-//        timer.schedule(new TimerTask() {
-//            @Override
-//            public void run() { // Function runs every MINUTES minutes.
-//                // Run the code you want here
-//                findDevices(); // If the function you wanted was static
-//            }
-//        }, 0, 1000 * 1 * MINUTES);
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        mDatabase = database.getReference();
+
+        mDatabase.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot ds) {
+                Iterable<DataSnapshot> devices = ds.child("devices").getChildren();
+                for (DataSnapshot dataSnapshots : devices) {
+                    Object data = dataSnapshots.getValue();
+                    boolean containsBTData = deviceList.contains(data);
+                    if (!containsBTData) {
+                        deviceList.add(data);
+                    }
+                }
+                showList();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
     }
 
     //Detects if device has bluetooth, and in case where it is turned off, prompts user to turn it on
@@ -95,17 +121,6 @@ public class BluetoothActivity extends AppCompatActivity {
         }
     };
 
-    public void enableDiscoverable(View view) {
-        String scanModeChanged = BluetoothAdapter.ACTION_SCAN_MODE_CHANGED;
-        String beDiscoverable = BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE;
-
-        IntentFilter filter = new IntentFilter(scanModeChanged);
-        registerReceiver(bluetoothState, filter);
-        Intent discoverableIntent = new Intent(beDiscoverable);
-        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-        startActivityForResult(discoverableIntent, DISCOVERY_REQUEST);
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == DISCOVERY_REQUEST) {
@@ -127,7 +142,8 @@ public class BluetoothActivity extends AppCompatActivity {
             String deviceInfo = remoteDeviceName + ", " + remoteDevice;
             boolean containsDevice = deviceList.contains(deviceInfo);
             if (!containsDevice) {
-                deviceList.add(deviceInfo);
+                //deviceList.add(deviceInfo);
+                mDatabase.child("devices").push().setValue(deviceInfo);
             }
             showList();
         }
